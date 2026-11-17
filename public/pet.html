@@ -1,0 +1,39 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>รายละเอียดสัตว์ | บ้านใหม่ให้น้อง</title><link rel="stylesheet" href="/css/style.css"></head><body>
+<section class="blk"><div class="wrap" id="root"><p class="empty">กำลังโหลด...</p></div></section>
+<script src="/js/app.js"></script><script>
+(async()=>{await initPage();
+const id=new URLSearchParams(location.search).get('id');
+let p;try{p=(await api('/api/pets/'+encodeURIComponent(id))).pet}catch(x){$('#root').innerHTML='<p class="empty">'+esc(x.message)+'</p>';return}
+const canAsk=p.status==='available'&&!p.is_owner&&!p.my_request;
+let side='';
+if(p.status==='adopted')side='<div class="card pad"><b>🏠 น้องได้บ้านใหม่แล้ว</b></div>';
+else if(p.status!=='available')side='<div class="card pad">สถานะ: '+PET_ST[p.status]+'</div>';
+else if(p.is_owner)side='<div class="card pad">นี่คือประกาศของคุณ ดูคำขอได้ที่ <a href="/dashboard.html"><b>แดชบอร์ด</b></a></div>';
+else if(p.my_request)side='<div class="card pad">คุณยื่นคำขอแล้ว สถานะ: <span class="badge b-'+p.my_request+'">'+REQ_ST[p.my_request]+'</span></div>';
+else if(!ME)side='<div class="card pad">กรุณา <a href="/login.html?next='+encodeURIComponent(location.pathname+location.search)+'"><b>เข้าสู่ระบบ</b></a> เพื่อยื่นคำขอรับเลี้ยง</div>';
+else side=`<div class="card pad"><h3>ยื่นคำขอรับเลี้ยง · แบบสอบถามความพร้อม</h3>
+<form class="f" id="rf">
+<label>ที่พักอาศัย<select name="housing_type"><option value="house">บ้านเดี่ยว/ทาวน์เฮาส์</option><option value="condo">คอนโด</option><option value="apartment">หอพัก/ห้องเช่า</option></select></label>
+<label class="chk"><input type="checkbox" name="housing_ok">เป็นเจ้าของที่พัก หรือที่พักอนุญาตให้เลี้ยงสัตว์</label>
+<label class="chk"><input type="checkbox" name="has_experience">เคยมีประสบการณ์เลี้ยงสัตว์</label>
+<label class="chk"><input type="checkbox" name="has_other_pets">ปัจจุบันมีสัตว์เลี้ยงอื่นอยู่แล้ว</label>
+<label class="chk"><input type="checkbox" name="family_agrees">คนในบ้านทุกคนเห็นด้วย</label>
+<label class="chk"><input type="checkbox" name="commit_vet">พร้อมพาไปฉีดวัคซีน/ทำหมัน/ตรวจสุขภาพ</label>
+<label>เวลาที่ต้องทิ้งสัตว์ไว้คนเดียวต่อวัน<select name="hours_alone"><option value="lt4">น้อยกว่า 4 ชั่วโมง</option><option value="4to8">4–8 ชั่วโมง</option><option value="gt8">มากกว่า 8 ชั่วโมง</option></select></label>
+<label>งบดูแลต่อเดือน (บาท)<input type="number" min="0" name="monthly_budget" value="0"></label>
+<label>เบอร์ติดต่อ<input name="phone" value="${esc(ME.phone||'')}" required></label>
+<label>เหตุผลที่อยากรับเลี้ยง<textarea name="reason" required minlength="10"></textarea></label>
+<button class="btn">ส่งคำขอ</button></form></div>`;
+$('#root').innerHTML=`<div class="detail"><div><img class="main" src="${esc(p.image_url||'/img/placeholder.svg')}" alt="${esc(p.name)}"></div>
+<div><h1 style="margin:0">${esc(p.name)}</h1>
+<div class="facts"><span class="badge">${SPECIES[p.species]}</span><span class="badge">${esc(p.breed||'ไม่ระบุสายพันธุ์')}</span><span class="badge">${ageText(p.age_months)}</span><span class="badge">${GENDER[p.gender]}</span><span class="badge">📍${esc(p.province)}</span></div>
+<p>${esc(p.description||'ยังไม่มีคำอธิบาย').replace(/\n/g,'<br>')}</p>
+${p.health_note?'<p><b>สุขภาพ:</b> '+esc(p.health_note)+'</p>':''}
+<p class="muted">ผู้ลงประกาศ: ${esc(p.owner_name)} ${p.owner_verified?'✅ ยืนยันตัวตนแล้ว':''}</p>${side}</div></div>`;
+const rf=$('#rf');if(rf)rf.onsubmit=async e=>{e.preventDefault();const fd=new FormData(rf),b={pet_id:p.id};
+for(const [k,v]of fd.entries())b[k]=v;
+['housing_ok','has_experience','has_other_pets','family_agrees','commit_vet'].forEach(k=>b[k]=fd.has(k));
+try{const r=await api('/api/requests',{method:'POST',body:b});toast('ส่งคำขอแล้ว ติดตามผลได้ที่แดชบอร์ด');setTimeout(()=>location.href='/dashboard.html',1000)}
+catch(x){toast(x.message,1)}};})();
+</script></body></html>

@@ -1,0 +1,33 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>แดชบอร์ด | บ้านใหม่ให้น้อง</title><link rel="stylesheet" href="/css/style.css"></head><body>
+<section class="blk"><div class="wrap"><h2>แดชบอร์ดของฉัน</h2>
+<div class="tabs"><button class="tab on" data-t="mine">สัตว์ของฉัน</button><button class="tab" data-t="incoming">คำขอที่ได้รับ</button><button class="tab" data-t="sent">คำขอที่ฉันยื่น</button></div>
+<div class="card" id="box"></div></div></section>
+<script src="/js/app.js"></script><script>
+(async()=>{if(!await initPage({auth:true}))return;
+const box=$('#box');
+const empty=t=>`<p class="empty">${t}</p>`;
+const views={
+async mine(){const {pets}=await api('/api/pets/mine');
+ box.innerHTML=pets.length?pets.map(p=>`<div class="item"><img src="${esc(p.image_url||'/img/placeholder.svg')}" alt=""><div class="grow"><a href="/pet.html?id=${p.id}"><b>${esc(p.name)}</b></a><p class="muted">${SPECIES[p.species]} · ${ageText(p.age_months)} · ${esc(p.province)}</p></div>
+ <span class="badge b-${p.status}">${PET_ST[p.status]}</span><button class="btn sm ghost" data-del="${p.id}">ลบ</button></div>`).join(''):empty('ยังไม่มีสัตว์ที่ลงทะเบียน · <a href="/add-pet.html"><b>ลงทะเบียนตัวแรก</b></a>');
+ $$('[data-del]').forEach(b=>b.onclick=async()=>{if(!confirm('ลบประกาศนี้?'))return;try{await api('/api/pets/'+b.dataset.del,{method:'DELETE'});views.mine()}catch(x){toast(x.message,1)}})},
+async sent(){const {requests}=await api('/api/requests/mine');
+ box.innerHTML=requests.length?requests.map(r=>`<div class="item"><img src="${esc(r.image_url||'/img/placeholder.svg')}" alt=""><div class="grow"><a href="/pet.html?id=${r.pet_id}"><b>${esc(r.pet_name)}</b></a>${r.reviewer_note?'<p class="muted">หมายเหตุ: '+esc(r.reviewer_note)+'</p>':''}</div><span class="badge b-${r.status}">${REQ_ST[r.status]}</span></div>`).join(''):empty('ยังไม่เคยยื่นคำขอ · <a href="/pets.html"><b>ดูสัตว์ที่รอบ้าน</b></a>')},
+async incoming(){const {requests}=await api('/api/requests/incoming');
+ box.innerHTML=requests.length?'<div class="pad">'+requests.map(r=>`<div class="req"><div style="display:flex;gap:14px;align-items:center">
+ <span class="score ${r.score>=70?'hi':r.score<40?'lo':''}" title="คะแนนความพร้อม">${r.score}</span>
+ <div class="grow" style="flex:1"><b>${esc(r.applicant_name)}</b> ${r.applicant_verified?'✅ ยืนยันตัวตนแล้ว':'<span class="muted">(ยังไม่ยืนยันตัวตน)</span>'}<p class="muted">ขอรับ ${esc(r.pet_name)} · เคยได้รับอนุมัติมาแล้ว ${r.approved_before} ครั้ง</p></div>
+ <span class="badge b-${r.status}">${REQ_ST[r.status]}</span></div>
+ <dl><dt>ที่พัก</dt><dd>${esc(r.housing_type)} ${r.housing_ok?'(อนุญาตให้เลี้ยง)':'(ยังไม่แน่ใจว่าอนุญาต)'}</dd><dt>ประสบการณ์</dt><dd>${r.has_experience?'มี':'ไม่มี'} · สัตว์อื่นในบ้าน: ${r.has_other_pets?'มี':'ไม่มี'}</dd>
+ <dt>คนในบ้านเห็นด้วย</dt><dd>${r.family_agrees?'ใช่':'ไม่/ไม่แน่ใจ'}</dd><dt>พาไปหาสัตวแพทย์</dt><dd>${r.commit_vet?'พร้อม':'ไม่แน่ใจ'}</dd>
+ <dt>ทิ้งไว้คนเดียว</dt><dd>${HOURS[r.hours_alone]}</dd><dt>งบต่อเดือน</dt><dd>${r.monthly_budget} บาท</dd>
+ <dt>ติดต่อ</dt><dd>${esc(r.phone)} · ${esc(r.applicant_email)}</dd><dt>เหตุผล</dt><dd>${esc(r.reason)}</dd></dl>
+ ${r.status==='pending'?`<button class="btn sm teal" data-ok="${r.id}">อนุมัติ</button> <button class="btn sm ghost" data-no="${r.id}">ปฏิเสธ</button>`:(r.reviewer_note?'<p class="muted">หมายเหตุ: '+esc(r.reviewer_note)+'</p>':'')}</div>`).join('')+'</div>':empty('ยังไม่มีคำขอเข้ามา');
+ const act=async(id,st)=>{const note=st==='rejected'?prompt('เหตุผลที่ปฏิเสธ (ไม่บังคับ)')||'':'';
+  if(st==='approved'&&!confirm('อนุมัติแล้วจะปิดประกาศและปฏิเสธคำขออื่นอัตโนมัติ ยืนยัน?'))return;
+  try{await api('/api/requests/'+id,{method:'PATCH',body:{status:st,note}});toast('บันทึกแล้ว');views.incoming()}catch(x){toast(x.message,1)}};
+ $$('[data-ok]').forEach(b=>b.onclick=()=>act(b.dataset.ok,'approved'));$$('[data-no]').forEach(b=>b.onclick=()=>act(b.dataset.no,'rejected'))}};
+$$('.tab').forEach(t=>t.onclick=()=>{$$('.tab').forEach(x=>x.classList.remove('on'));t.classList.add('on');views[t.dataset.t]()});
+views.mine();})();
+</script></body></html>

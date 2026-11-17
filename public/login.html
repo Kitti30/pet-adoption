@@ -1,0 +1,13 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>เข้าสู่ระบบ | บ้านใหม่ให้น้อง</title><link rel="stylesheet" href="/css/style.css"></head><body>
+<div class="card pad narrow"><h2>เข้าสู่ระบบ</h2>
+<form class="f" id="f"><label>อีเมล<input type="email" name="email" required></label>
+<label>รหัสผ่าน<input type="password" name="password" required></label>
+<button class="btn">เข้าสู่ระบบ</button><p class="muted">ยังไม่มีบัญชี? <a href="/register.html"><b>สมัครสมาชิก</b></a></p></form></div>
+<script src="/js/app.js"></script><script>
+(async()=>{await initPage();
+$('#f').onsubmit=async e=>{e.preventDefault();
+try{await api('/api/auth/login',{method:'POST',body:Object.fromEntries(new FormData(e.target))});
+const n=new URLSearchParams(location.search).get('next');location.href=(n&&n.startsWith('/')&&!n.startsWith('//'))?n:'/';}
+catch(x){toast(x.message,1)}};})();
+</script></body></html>

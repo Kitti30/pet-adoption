@@ -1,0 +1,23 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ลงทะเบียนสัตว์ | บ้านใหม่ให้น้อง</title><link rel="stylesheet" href="/css/style.css"></head><body>
+<div class="wrap"><div class="card pad" style="max-width:640px;margin:36px auto"><h2>ลงทะเบียนสัตว์ที่ต้องการหาบ้าน</h2>
+<p class="muted">ประกาศจะแสดงหลังผู้ดูแลระบบตรวจสอบและอนุมัติ</p>
+<form class="f" id="f"><label>ชื่อสัตว์<input name="name" required></label>
+<div class="row"><label>ชนิด<select name="species"><option value="dog">สุนัข</option><option value="cat">แมว</option><option value="rabbit">กระต่าย</option><option value="bird">นก</option><option value="other">อื่น ๆ</option></select></label>
+<label>สายพันธุ์<input name="breed" placeholder="ไม่ทราบก็ปล่อยว่างได้"></label></div>
+<div class="row"><label>อายุ (ปี)<input type="number" min="0" name="y" value="0"></label><label>อายุ (เดือน)<input type="number" min="0" max="11" name="m" value="0"></label></div>
+<div class="row"><label>เพศ<select name="gender"><option value="unknown">ไม่ระบุ</option><option value="male">ผู้</option><option value="female">เมีย</option></select></label>
+<label>จังหวัดที่อยู่<input name="province" required></label></div>
+<label>นิสัย / เรื่องราวของน้อง<textarea name="description"></textarea></label>
+<label>สุขภาพ (วัคซีน ทำหมัน โรคประจำตัว)<textarea name="health_note"></textarea></label>
+<label>รูปภาพ (ไม่เกิน 3MB)<input type="file" name="image" accept="image/*" id="img"></label>
+<img id="pv" alt="" style="display:none;max-height:200px;border-radius:12px;border:2.5px solid var(--ink)">
+<button class="btn teal">ส่งประกาศ</button></form></div></div>
+<script src="/js/app.js"></script><script>
+(async()=>{if(!await initPage({auth:true}))return;
+$('#img').onchange=e=>{const f=e.target.files[0],p=$('#pv');if(f){p.src=URL.createObjectURL(f);p.style.display='block'}};
+$('#f').onsubmit=async e=>{e.preventDefault();const fd=new FormData(e.target);
+fd.set('age_months',(+fd.get('y')||0)*12+(+fd.get('m')||0));fd.delete('y');fd.delete('m');
+try{await api('/api/pets',{method:'POST',body:fd});toast('ส่งประกาศแล้ว รอผู้ดูแลอนุมัติ');setTimeout(()=>location.href='/dashboard.html',900)}
+catch(x){toast(x.message,1)}};})();
+</script></body></html>

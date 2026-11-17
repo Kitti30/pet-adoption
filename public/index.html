@@ -1,0 +1,14 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>หน้าแรก | บ้านใหม่ให้น้อง</title><link rel="stylesheet" href="/css/style.css"></head><body>
+<section class="hero"><div class="wrap"><div>
+<h1>ทุกตัวสมควรมีบ้านที่อบอุ่น</h1>
+<p>ค้นหาน้องหมา น้องแมว และสัตว์น่ารักที่กำลังรอครอบครัวใหม่ หรือลงประกาศหาบ้านให้สัตว์จรที่คุณช่วยเหลือไว้</p>
+<form class="searchbar" action="/pets.html"><input name="q" placeholder="ค้นหาชื่อหรือลักษณะ"><select name="species"><option value="">ทุกชนิด</option>
+<option value="dog">สุนัข</option><option value="cat">แมว</option><option value="rabbit">กระต่าย</option><option value="bird">นก</option><option value="other">อื่น ๆ</option></select>
+<button class="btn teal">ค้นหา</button></form></div><div class="art">🐶🐱</div></div></section>
+<section class="blk"><div class="wrap"><h2>น้องๆ ที่เพิ่งเข้ามาใหม่</h2><div class="grid" id="list"></div></div></section>
+<script src="/js/app.js"></script><script>
+(async()=>{await initPage();
+const {pets}=await api('/api/pets?limit=8');
+$('#list').innerHTML=pets.length?pets.map(petCard).join(''):'<p class="empty">ยังไม่มีประกาศ เริ่มลงทะเบียนสัตว์ตัวแรกได้เลย</p>';})();
+</script></body></html>
